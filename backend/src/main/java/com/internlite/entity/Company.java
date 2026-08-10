@@ -3,6 +3,7 @@ package com.internlite.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "companies")
@@ -24,4 +25,7 @@ public class Company {
     private String logo;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
+    private List<Internship> internships;
 }
