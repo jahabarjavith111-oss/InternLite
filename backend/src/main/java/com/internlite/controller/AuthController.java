@@ -6,7 +6,9 @@ import com.internlite.dto.RegisterRequest;
 import com.internlite.entity.User;
 import com.internlite.enums.Role;
 import com.internlite.repository.UserRepository;
+import com.internlite.service.OtpService;
 import com.internlite.config.JwtUtil;
+import java.util.Map;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,33 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authManager;
+    private final OtpService otpService;
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || !email.contains("@")) {
+            return ResponseEntity.badRequest().body("Valid email is required");
+        }
+        if (userRepo.existsByEmail(email.trim())) {
+            return ResponseEntity.badRequest().body("Email already registered");
+        }
+        otpService.sendOtp(email.trim(), body.get("name"));
+        return ResponseEntity.ok("OTP sent! Check your inbox for mail from InternLite (no-reply@internlite.com).");
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otp = body.get("otp");
+        if (email == null || otp == null) {
+            return ResponseEntity.badRequest().body("Email and OTP are required");
+        }
+        if (otpService.verifyOtp(email.trim(), otp.trim())) {
+            return ResponseEntity.ok("Email verified successfully");
+        }
+        return ResponseEntity.badRequest().body("Invalid or expired OTP");
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {

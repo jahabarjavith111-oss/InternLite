@@ -76,7 +76,7 @@ const JobsPage = () => {
     const [total, setTotal] = useState(0);
     const pageSize = 20;
 
-    const fetchJobs = useCallback(async () => {
+    const fetchJobs = useCallback(async (pageNum = 0) => {
         setLoading(true);
         try {
             if (unified) {
@@ -85,14 +85,13 @@ const JobsPage = () => {
                     location: location || undefined,
                     source: source !== 'all' ? source : undefined,
                     isRemote: isRemote || undefined,
-                    page: 0,
-                    size: 5000,
+                    page: pageNum,
+                    size: 20,
                 });
                 const data = res.data;
-                const list = Array.isArray(data.content) ? data.content : Array.isArray(data) ? data : [];
-                setJobs(list);
-                setTotal(data.totalElements ?? list.length);
-                setPage(0);
+                setJobs(data.content || []);
+                setTotal(data.totalElements ?? 0);
+                setPage(data.number ?? pageNum);
             } else {
                 const res = await jobAPI.getJobs({
                     keyword: search || undefined,
@@ -100,24 +99,8 @@ const JobsPage = () => {
                     category: category || undefined,
                     workType: workType || undefined,
                 });
-                setJobs(Array.isArray(res.data) ? res.data.map(j => ({
-                    id: 'int-' + j.jobId,
-                    source: 'internal',
-                    isExternal: false,
-                    title: j.title,
-                    companyName: j.company?.companyName || 'Company',
-                    location: j.location,
-                    workplaceType: j.workType ? j.workType.toLowerCase() : '',
-                    isRemote: j.workType === 'REMOTE',
-                    employmentType: j.employmentType,
-                    stipendMin: j.salary,
-                    description: j.description,
-                    tags: j.requiredSkills,
-                    departments: j.category?.categoryName || '',
-                    applyUrl: `/jobs/${j.jobId}`,
-                    postedAt: j.createdAt,
-                })) : []);
-                setTotal(Array.isArray(res.data) ? res.data.length : 0);
+                setJobs(res.data || []);
+                setTotal(res.data?.length || 0);
             }
         } catch (e) {
             console.error(e);
@@ -131,25 +114,81 @@ const JobsPage = () => {
 
     useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
-    const handleSearch = (e) => { e.preventDefault(); fetchJobs(); };
+    const handleSearch = (e) => { e.preventDefault(); fetchJobs(0); };
 
-    // Client-side filtering for category/workType when unified (ensures filters work across all 5000)
-    const filtered = unified ? jobs.filter(j => {
-        if (category) {
-            const cat = category.toLowerCase();
-            const hay = `${j.departments || ''} ${j.tags || ''} ${j.title || ''}`.toLowerCase();
-            if (!hay.includes(cat)) return false;
-        }
-        if (workType) {
-            const wt = (j.workplaceType || j.workType || '').toUpperCase();
-            if (wt !== workType) return false;
-        }
+    const filtered = jobs.filter(j => {
+        if (category && j.departments?.toLowerCase().includes(category.toLowerCase())) return false;
+        if (workType && j.workplaceType?.toUpperCase() !== workType.toUpperCase()) return false;
         return true;
-    }) : jobs;
+    });
 
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / pageSize) || 1;
-    const paginated = filtered.slice(page * pageSize, (page + 1) * pageSize);
+    const totalFiltered = unified ? total : filtered.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    const paginated = jobs.slice(page * pageSize, (page + 1) * pageSize);
+
+    // Render content based on state
+    let content;
+    if (loading) {
+        content = <div className="loading-spinner">Loading jobs...</div>;
+    } else if (filtered.length === 0) {
+        content = (
+            <div className="empty-state">
+                <span className="empty-icon" style={{display:"inline-flex", justifyContent:"center"}}><Icon name="emptySearch" size={28} /></span>
+                <h3>No jobs found</h3>
+                <p>Try a different category, work type or keyword.</p>
+            </div>
+        );
+    } else {
+        content = (
+            <>
+                <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
+                    {paginated.map(job => {
+                        const isExt = job.isExternal ?? job.source !== 'internal';
+                        const key = job.id || job.sourceId || job.title + job.companyName;
+                        const title = job.title;
+                        const company = job.companyName || job.company?.companyName || 'Company';
+                        const loc = job.location || '—';
+                        const wt = formatWorkMode(job.workplaceType || job.workType);
+                        const emp = job.employmentType?.replace('_', ' ') || 'Full time';
+                        const pay = formatPay(job.stipendMin ?? job.salary, job.stipendMax, job.stipendCurrency) || formatPay(job.salary, null, '₹');
+                        const applyUrl = job.applyUrl || job.sourceUrl || '#';
+                        const isExternalApply = isExt;
+                        const numericId = job.id ? job.id.replace(/^ext-|^int-/, '') : job.sourceId;
+                        const detailLink = isExt ? `/external-jobs/${numericId}` : `/jobs/${numericId || job.sourceId}`;
+                        const desc = shortDesc(job.description, 160);
+                        return (
+                            <Link to={detailLink} key={key} className="job-card">
+                                <div className="card-header">
+                                    <div>
+                                        <h3>{job.title}</h3>
+                                        <div className="company">{job.company?.companyName}</div>
+                                    </div>
+                                    <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+                                        {matchMap[job.internshipId] != null && <span className="badge match-chip">⭐ {matchMap[job.internshipId]}% Match</span>}
+                                        <button onClick={e => toggleSave(e, job.internshipId)} className="btn btn-ghost btn-sm" title={savedIds.has(job.internshipId) ? 'Unsave' : 'Save'}>{savedIds.has(job.internshipId) ? '★' : '♡'}</button>
+                                        <div className="company-logo">{job.company?.companyName?.charAt(0)}</div>
+                                    </div>
+                                </div>
+                                <div className="meta">
+                                    <span>📍 {job.location}</span>
+                                    <span>💼 {job.workType}</span>
+                                    <span>⏱ {job.duration}</span>
+                                    <span>💰 {job.stipend}</span>
+                                </div>
+                                <div className="skills">
+                                    {job.requiredSkills && job.requiredSkills.split(',').map(s => <span key={s} className="skill">{s.trim()}</span>)}
+                                </div>
+                                <div className="card-footer">
+                                    <span className="badge badge-muted">Deadline: {job.applicationDeadline}</span>
+                                    <span className="btn btn-primary btn-sm" style={{pointerEvents: 'none'}}>View Details</span>
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </>
+        );
+    }
 
     return (
         <div className="dashboard animate-fade-in">
@@ -167,105 +206,43 @@ const JobsPage = () => {
             </div>
 
             <form onSubmit={handleSearch} className="search-bar" style={{ marginBottom: '1.2rem', background: '#fff', padding: '1rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-color)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Title, skill or keyword" className="form-control" style={{ flex: 2, minWidth: '180px' }} />
-                <input value={location} onChange={e => setLocation(e.target.value)} placeholder="Location" className="form-control" style={{ flex: 1, minWidth: '140px' }} />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Keywords, skill or company" className="form-control" style={{ flex: 2, minWidth: '180px' }} />
+                <input value={location} onChange={e => setLocation(e.target.value)} placeholder="Location" className="form-control" style={{ flex: 1, minWidth: '150px' }} />
                 <select value={source} onChange={e => { setSource(e.target.value); setPage(0); }} className="form-control" style={{ flex: 1, minWidth: '140px' }}>
                     {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.5rem', fontSize: '0.85rem' }}>
                     <input type="checkbox" checked={isRemote} onChange={e => { setIsRemote(e.target.checked); setPage(0); }} /> Remote only
                 </label>
-                <select value={category} onChange={e=> { setCategory(e.target.value); setPage(0); }} className="form-control" style={{ flex: 1, minWidth: '140px' }}>
-                    <option value="">All categories</option>
-                    {categories.map(c => <option key={c.categoryId} value={c.categoryName}>{c.categoryName}</option>)}
-                </select>
-                <select value={workType} onChange={e=> { setWorkType(e.target.value); setPage(0); }} className="form-control" style={{ minWidth: '130px' }}>
-                    <option value="">Any work type</option>
-                    <option value="REMOTE">Remote</option>
-                    <option value="ONSITE">On-site</option>
-                    <option value="HYBRID">Hybrid</option>
-                </select>
+                {!unified && (
+                    <>
+                        <select value={category} onChange={e => { setCategory(e.target.value); setPage(0); }} className="form-control" style={{ flex: 1, minWidth: '140px' }}>
+                            <option value="">All categories</option>
+                            {categories.map(c => <option key={c.categoryId} value={c.categoryName}>{c.categoryName}</option>)}
+                        </select>
+                        <select value={workType} onChange={e => { setWorkType(e.target.value); setPage(0); }} className="form-control" style={{ minWidth: '130px' }}>
+                            <option value="">Any work type</option>
+                            <option value="REMOTE">Remote</option>
+                            <option value="ONSITE">On-site</option>
+                            <option value="HYBRID">Hybrid</option>
+                        </select>
+                    </>
+                )}
                 <button type="submit" className="btn btn-primary">Search</button>
             </form>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <span className="text-muted" style={{ fontSize: '0.85rem' }}>{totalFiltered} results • {unified ? 'Unified (internal + external)' : 'Internal only'} {unified && category && `• ${category}`} {workType && `• ${workType}`}</span>
-                <span className="text-muted" style={{ fontSize: '0.75rem' }}>Category & work type filters work live — try them!</span>
+                <strong>{filtered.length} Jobs Found</strong>
+                <select value={sort} onChange={e => setSort(e.target.value)} className="form-control" style={{ width: '180px' }}>
+                    <option value="recommended">Sort: Recommended</option>
+                    <option value="match">Sort: Best Match</option>
+                    <option value="newest">Sort: Newest</option>
+                    <option value="deadline">Sort: Deadline</option>
+                    <option value="stipend">Sort: Stipend</option>
+                </select>
             </div>
 
-            {loading ? <div className="loading-spinner">Loading jobs...</div> : paginated.length === 0 ? (
-                <div className="empty-state">
-                    <span className="empty-icon" style={{display:"inline-flex", justifyContent:"center"}}><Icon name="emptySearch" size={28} /></span>
-                    <h3>No jobs found</h3>
-                    <p>Try a different category, work type or keyword. External feeds update every few hours.</p>
-                    <button className="btn btn-ghost btn-sm" onClick={() => { setCategory(''); setWorkType(''); setPage(0); }}>Clear category/work type</button>
-                </div>
-            ) : (
-                <>
-                    <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
-                        {paginated.map((job) => {
-                            const isExt = job.isExternal ?? job.source !== 'internal';
-                            const key = job.id || job.sourceId || job.title + job.companyName;
-                            const title = job.title;
-                            const company = job.companyName || job.company?.companyName || 'Company';
-                            const loc = job.location || '—';
-                            const wt = formatWorkMode(job.workplaceType || job.workType);
-                            const emp = job.employmentType?.replace('_', ' ') || 'Full time';
-                            const pay = formatPay(job.stipendMin ?? job.salary, job.stipendMax, job.stipendCurrency) || formatPay(job.salary, null, '₹');
-                            const applyUrl = job.applyUrl || job.sourceUrl || '#';
-                            const isExternalApply = isExt;
-                            const numericId = job.id ? job.id.replace(/^ext-|^int-/, '') : job.sourceId;
-                            const detailLink = isExt ? `/external-jobs/${numericId}` : `/jobs/${numericId || job.sourceId}`;
-                            const desc = shortDesc(job.description, 160);
-                            return (
-                                <div key={key} className="internship-card" style={{ position: 'relative' }}>
-                                    <div className="card-header">
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
-                                                <h3 style={{ margin: 0 }}>{title}</h3>
-                                                {sourceBadge(job.source)}
-                                                {job.isRemote && <span className="badge" style={{ background: '#DBEAFE', color: '#1E40AF' }}>Remote</span>}
-                                            </div>
-                                            <div className="company">{company}</div>
-                                        </div>
-                                        <div className="company-logo">{company.charAt(0)}</div>
-                                    </div>
-                                    <div className="meta">
-                                        <span><Icon name="location" size={14} /> {loc}</span>
-                                        <span><Icon name="work" size={14} /> {wt}</span>
-                                        <span><Icon name="duration" size={14} /> {emp}</span>
-                                        <span><Icon name="stipend" size={14} /> {pay || 'Not disclosed'}</span>
-                                        {job.postedAt && <span><Icon name="date" size={14} /> {new Date(job.postedAt).toLocaleDateString()}</span>}
-                                    </div>
-                                    <p className="text-muted" style={{ fontSize: '0.85rem', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '0.5rem 0' }}>{desc}</p>
-                                    <div className="skills" style={{marginBottom: '0.5rem'}}>
-                                        {(job.tags || job.departments || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 6).map(s => <span key={s} className="skill">{s}</span>)}
-                                        {!(job.tags || job.departments) && <span className="skill" style={{opacity: 0.6}}>General</span>}
-                                    </div>
-                                    <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                        <span className="text-muted" style={{ fontSize: '0.75rem' }}>{isExternalApply ? `via ${job.source} • ` : ''}{job.sourceUrl ? <a href={job.sourceUrl} target="_blank" rel="noopener" style={{ textDecoration: 'underline' }}>View source</a> : ''}</span>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <Link to={detailLink} className="btn btn-ghost btn-sm">View Details</Link>
-                                            {isExternalApply ? (
-                                                <a href={applyUrl} target="_blank" rel="noopener" className="btn btn-primary btn-sm">Apply on {company} ↗</a>
-                                            ) : (
-                                                <Link to={applyUrl} className="btn btn-primary btn-sm">View & Apply</Link>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {totalFiltered > pageSize && (
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem', alignItems: 'center' }}>
-                            <button className="btn btn-ghost btn-sm" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p-1))}>Previous</button>
-                            <span className="text-muted" style={{ padding: '0.5rem', fontSize: '0.85rem' }}>Page {page + 1} / {Math.ceil(totalFiltered/pageSize)}</span>
-                            <button className="btn btn-ghost btn-sm" disabled={(page + 1) * pageSize >= totalFiltered} onClick={() => setPage(p => p+1)}>Next</button>
-                        </div>
-                    )}
-                </>
-            )}
+            {content}
         </div>
     );
 };

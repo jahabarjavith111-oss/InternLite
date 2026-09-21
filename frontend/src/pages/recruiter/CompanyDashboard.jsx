@@ -144,7 +144,7 @@ const CompanyDashboard = () => {
                                         <td><span className={`badge status-${app.status}`}>{app.status}</span></td>
                                         <td>{app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : ''}</td>
                                         <td>
-                                            <Link to={`/recruiter/candidate/${app.applicationId}`} className="btn btn-outline btn-sm">View</Link>
+                                            <Link to={`/recruiter/candidates/${app.applicationId}`} className="btn btn-outline btn-sm">View</Link>
                                         </td>
                                     </tr>
                                 ))}

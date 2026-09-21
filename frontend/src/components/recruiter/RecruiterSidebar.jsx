@@ -35,7 +35,7 @@ const RecruiterSidebar = () => {
     return (
         <aside className={`recruiter-sidebar ${collapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
-                <Link to="/dashboard" className="sidebar-logo" style={{display: 'inline-flex'}}><Logo size={collapsed ? 'sm' : 'sm'} withText={!collapsed} /></Link>
+                <Link to="/recruiter/dashboard" className="sidebar-logo" style={{display: 'inline-flex'}}><Logo size={collapsed ? 'sm' : 'sm'} withText={!collapsed} /></Link>
                 <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)}>
                     {collapsed ? '→' : '←'}
                 </button>

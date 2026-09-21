@@ -115,7 +115,7 @@ const RecruiterDashboard = () => {
                                                 <span className={`badge status-${app.status}`}>{app.status}</span>
                                             </div>
                                             <div className="application-row-actions">
-                                                <Link to={`/recruiter/candidate/${app.applicationId}`} className="btn btn-outline btn-sm">View</Link>
+                                                <Link to={`/recruiter/candidates/${app.applicationId}`} className="btn btn-outline btn-sm">View</Link>
                                             </div>
                                         </div>
                                     ))}

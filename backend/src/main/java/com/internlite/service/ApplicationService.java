@@ -23,7 +23,7 @@ public class ApplicationService {
 
     public Application apply(ApplicationRequest req, Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserId(user.getUserId()).orElseThrow();
+        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
         Internship internship = internshipRepo.findById(req.getInternshipId()).orElseThrow();
 
         if (appRepo.existsByInternshipAndStudent(internship, student)) {
@@ -43,7 +43,7 @@ public class ApplicationService {
 
     public List<Application> studentApplications(Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserId(user.getUserId()).orElseThrow();
+        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
         return appRepo.findByStudent(student);
     }
 

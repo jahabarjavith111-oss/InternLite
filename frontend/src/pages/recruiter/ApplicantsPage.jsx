@@ -154,7 +154,7 @@ const ApplicantsPage = () => {
                                             <td><span className={`badge status-${app.status}`}>{app.status}</span></td>
                                             <td>
                                                 <div className="d-flex" style={{gap: '0.4rem'}}>
-                                                    <Link to={`/recruiter/candidate/${app.applicationId}`} className="btn btn-outline btn-sm">View</Link>
+                                                    <Link to={`/recruiter/candidates/${app.applicationId}`} className="btn btn-outline btn-sm">View</Link>
                                                     <button className="btn btn-primary btn-sm" onClick={() => setStatus(app.applicationId, 'SHORTLISTED')}>Shortlist</button>
                                                     <button className="btn btn-ghost btn-sm" onClick={() => setStatus(app.applicationId, 'REJECTED')}>Reject</button>
                                                 </div>

@@ -19,13 +19,13 @@ public class StudentSkillService {
 
     public List<StudentSkill> getStudentSkills(Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserId(user.getUserId()).orElseThrow();
+        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
         return studentSkillRepo.findByStudent(student);
     }
 
     public void addSkill(Authentication auth, Long skillId) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserId(user.getUserId()).orElseThrow();
+        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
         Skill skill = skillRepo.findById(skillId).orElseThrow();
         if (!studentSkillRepo.findByStudent(student).stream()
                 .anyMatch(ss -> ss.getSkill().getSkillId().equals(skillId))) {
@@ -38,7 +38,7 @@ public class StudentSkillService {
 
     public void removeSkill(Authentication auth, Long skillId) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserId(user.getUserId()).orElseThrow();
+        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
         studentSkillRepo.deleteByStudentAndSkill(student,
             skillRepo.findById(skillId).orElseThrow());
     }

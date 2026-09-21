@@ -16,7 +16,7 @@ const RecruiterHeader = ({ subtitle, primaryAction }) => {
             </div>
             <div className="recruiter-header-right">
                 {primaryAction && (
-                    <Link to="/post-internship" className="btn btn-primary">
+                    <Link to="/recruiter/post-internship" className="btn btn-primary">
                         + Post Internship
                     </Link>
                 )}

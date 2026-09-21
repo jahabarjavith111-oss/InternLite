@@ -5,3 +5,5 @@ bin/
 .settings/
 target/
 *.class
+# Local secrets (mail credentials, db passwords) — never commit
+src/main/resources/application.properties

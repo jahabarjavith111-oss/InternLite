@@ -1,14 +1,20 @@
 package com.internlite.entity;
 
 import com.internlite.enums.NotificationType;
+
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notificationId;
@@ -26,5 +32,15 @@ public class Notification {
     private NotificationType type;
 
     private boolean isRead = false;
+
     private LocalDateTime createdAt = LocalDateTime.now();
-}
+
+    // Explicit getter and setter for boolean field
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
+} 

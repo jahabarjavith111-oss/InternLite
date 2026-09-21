@@ -41,7 +41,7 @@ const PostInternship = () => {
             const stipendNum = parseFloat(String(form.stipend).replace(/[^0-9.]/g, '')) || 0;
             const payload = {
                 title: form.title,
-                description: [form.description, form.responsibilities ? `\nResponsibilities: ${form.responsibilities}` : '', form.learningOpportunities ? `\nLearning: ${form.learningOpportunities}` : ''].join(''),
+                description: [form.description, form.responsibilities ? `\nResponsibilities: ${form.responsibilities}` : '', form.learningOpportunities ? `\nLearning: ${form.learningOpportunities}` : '', form.benefits ? `\nBenefits: ${form.benefits}` : '', form.education ? `\nEducation: ${form.education}` : '', form.experience ? `\nExperience: ${form.experience}` : '', form.openings > 1 ? `\nOpenings: ${form.openings}` : ''].join(''),
                 location: form.location || 'Remote',
                 workType: mapWorkType(form.workMode),
                 duration: form.duration || '3 months',

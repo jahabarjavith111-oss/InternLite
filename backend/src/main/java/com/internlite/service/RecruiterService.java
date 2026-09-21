@@ -20,7 +20,7 @@ public class RecruiterService {
 
     public List<Internship> myInternships(Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Recruiter r = recruiterRepo.findByUserId(user.getUserId()).orElseThrow();
+        Recruiter r = recruiterRepo.findByUserUserId(user.getUserId()).orElseThrow();
         return r.getCompany().getInternships();
     }
 

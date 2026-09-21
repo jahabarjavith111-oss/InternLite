@@ -88,7 +88,7 @@ const ShortlistedPage = () => {
                                         <div className="text-muted mt-2" style={{fontSize: '0.85rem'}}>Shortlisted: {new Date(app.appliedAt).toLocaleDateString()}</div>
                                     </div>
                                     <div className="candidate-card-actions">
-                                        <Link to={`/recruiter/candidate/${app.applicationId}`} className="btn btn-outline btn-sm">View Profile</Link>
+                                        <Link to={`/recruiter/candidates/${app.applicationId}`} className="btn btn-outline btn-sm">View Profile</Link>
                                         <button className="btn btn-primary btn-sm">Schedule Interview</button>
                                     </div>
                                 </div>

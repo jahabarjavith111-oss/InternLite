@@ -15,7 +15,7 @@ public class StudentService {
 
     public Student getProfile(Authentication auth) {
         User user = (User) auth.getPrincipal();
-        return studentRepo.findByUserId(user.getUserId())
+        return studentRepo.findByUserUserId(user.getUserId())
             .orElseGet(() -> {
                 Student s = new Student();
                 s.setUser(user);

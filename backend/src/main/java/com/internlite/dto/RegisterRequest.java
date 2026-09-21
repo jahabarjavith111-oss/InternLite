@@ -15,4 +15,5 @@ public class RegisterRequest {
     private String phone;
     @NotNull
     private Role role;
+    private String otp;
 }

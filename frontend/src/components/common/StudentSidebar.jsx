@@ -4,15 +4,15 @@ import Logo from './Logo';
 import { Icon } from './Icon';
 
 const LINKS = [
-    { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', end: true },
+    { to: '/student/dashboard', label: 'Overview', icon: 'dashboard', end: true },
     { to: '/internships', label: 'Find Internships', icon: 'search' },
     { to: '/jobs', label: 'Jobs', icon: 'jobs' },
     { to: '/companies', label: 'Companies', icon: 'companies' },
-    { to: '/saved', label: 'Saved', icon: 'saved' },
-    { to: '/applications', label: 'Applications', icon: 'applications' },
-    { to: '/interviews', label: 'Interviews', icon: 'interviews' },
-    { to: '/messages', label: 'Messages', icon: 'messages' },
-    { to: '/notifications', label: 'Notifications', icon: 'notifications' },
+    { to: '/student/saved', label: 'Saved', icon: 'saved' },
+    { to: '/student/applications', label: 'Applications', icon: 'applications' },
+    { to: '/student/interviews', label: 'Interviews', icon: 'interviews' },
+    { to: '/student/messages', label: 'Messages', icon: 'messages' },
+    { to: '/student/notifications', label: 'Notifications', icon: 'notifications' },
 ];
 
 const StudentSidebar = () => {
@@ -28,7 +28,7 @@ const StudentSidebar = () => {
                 ))}
             </nav>
             <div className="side-divider" />
-            <NavLink to="/profile" className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
+            <NavLink to="/student/profile" className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
                 <span className="ico"><Icon name="profile" size={16} /></span>My Profile
             </NavLink>
             <NavLink to="/resources" className={({ isActive }) => `side-link${isActive ? ' active' : ''}`}>
