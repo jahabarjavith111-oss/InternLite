@@ -21,6 +21,7 @@ import './App.css';
 
 const JobsPage = lazy(() => import('./pages/jobs/JobsPage'));
 const JobDetailPage = lazy(() => import('./pages/jobs/JobDetailPage'));
+const ExternalJobDetailPage = lazy(() => import('./pages/jobs/ExternalJobDetailPage'));
 const CompaniesPage = lazy(() => import('./pages/companies/CompaniesPage'));
 const CompanyDetailPage = lazy(() => import('./pages/companies/CompanyDetailPage'));
 const ResourcesPage = lazy(() => import('./pages/resources/ResourcesPage'));
@@ -58,7 +59,7 @@ const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'));
 const AdminIngestion = lazy(() => import('./pages/admin/AdminIngestion'));
 
 const LoadingFallback = () => (
-    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-ink-muted)' }}>Loading...</div>
+    <div style={{ padding: '3rem', textAlign: 'center', color: '#667085' }}>Loading...</div>
 );
 
 const PublicLayout = () => (
@@ -124,6 +125,7 @@ function App() {
                             <Route path="/internships/:id" element={<InternshipDetail />} />
                             <Route path="/jobs" element={<JobsPage />} />
                             <Route path="/jobs/:id" element={<JobDetailPage />} />
+                            <Route path="/external-jobs/:id" element={<ExternalJobDetailPage />} />
                             <Route path="/companies" element={<CompaniesPage />} />
                             <Route path="/companies/:id" element={<CompanyDetailPage />} />
                             <Route path="/resources" element={<ResourcesPage />} />
