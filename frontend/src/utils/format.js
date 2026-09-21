@@ -99,3 +99,25 @@ export const shortDesc = (t, n = 140) => {
     const s = String(t).replace(/\s+/g, ' ').trim();
     return s.length > n ? `${s.slice(0, n).trim()}…` : s;
 };
+
+/** Unified feed items: { id: 'int-1' | 'ext-123', source, sourceId, isExternal } */
+export const isExternalItem = (job = {}) => Boolean(job.isExternal ?? job.external ?? (typeof job.id === 'string' && job.id.startsWith('ext-')));
+
+export const numericId = (job = {}) => {
+    if (job.internshipId ?? job.jobId) return String(job.internshipId ?? job.jobId);
+    if (job.sourceId) return String(job.sourceId);
+    const id = String(job.id || '');
+    return id.replace(/^(ext-|int-)/, '');
+};
+
+/** Detail link: internal -> base/numericId, external -> /external-jobs/sourceId */
+export const detailLinkFor = (job = {}, base = '/internships') => {
+    if (isExternalItem(job)) return `/external-jobs/${numericId(job)}`;
+    return `${base}/${numericId(job)}`;
+};
+
+export const sourceLabel = (job = {}) => {
+    const s = String(job.source || (isExternalItem(job) ? 'external' : 'internal')).toLowerCase();
+    if (s === 'internal') return 'InternLite';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+};

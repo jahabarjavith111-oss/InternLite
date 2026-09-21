@@ -6,9 +6,12 @@ export const applyInternship = (internshipId, coverLetter, resumeId) =>
     api.post('/applications', { internshipId, coverLetter, resumeId });
 export const getMyApplications = () => api.get('/applications/my');
 
+export const getUnifiedInternships = (params) => api.get('/internships/unified', { params });
+
 export const internshipAPI = {
     getInternships,
     getInternshipById,
+    getUnifiedInternships,
     applyInternship,
     getMyApplications,
 };
