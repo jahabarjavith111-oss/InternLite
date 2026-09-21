@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Logo from '../../components/common/Logo';
 import { useAuth } from '../../context/AuthContext';
 import { sendOtp, verifyOtp } from '../../api/authAPI';
 import { friendlyError } from '../../api/api';
@@ -75,10 +76,7 @@ function Register() {
         <div className="auth-page">
             <div className="auth-container">
                 <div className="auth-logo" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem', marginBottom: '2rem'}}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width: 48, height: 48, background: 'linear-gradient(135deg, #5B4BFF 0%, #4438D6 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '22px'}}>
-                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <p style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem'}}>Discover Internships. Build Experience.</p>
+                    <Logo size="lg" />
                 </div>
                 <h2>Create your account</h2>
                 <p className="text-muted" style={{fontSize: '0.85rem', marginBottom: '1rem'}}>Step {step} of 2: {step === 1 ? 'Your details' : 'Email verification'}</p>

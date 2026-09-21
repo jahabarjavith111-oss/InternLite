@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { friendlyError } from '../../api/api';
+import Logo from '../../components/common/Logo';
 
 function Login() {
     const [email, setEmail] = useState('student@gmail.com');
@@ -31,10 +32,7 @@ function Login() {
     return (
         <div className="auth-container">
             <div className="auth-logo" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem', marginBottom: '2rem'}}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width: 48, height: 48, background: 'linear-gradient(135deg, #5B4BFF 0%, #4438D6 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '22px'}}>
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <p style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem'}}>Discover Internships. Build Experience.</p>
+                <Logo size="lg" />
             </div>
             <h2>Welcome back</h2>
             {error && <div className="alert alert-danger" style={{marginBottom: '1rem', padding: '0.75rem 1rem', background: 'var(--color-danger-light)', color: 'var(--color-danger)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-danger)'}}>{error}</div>}
