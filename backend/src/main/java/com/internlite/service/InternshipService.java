@@ -21,19 +21,42 @@ public class InternshipService {
     public List<Internship> search(String keyword, String location,
                                    String category, String workType) {
         List<Internship> internships = internshipRepo.findByStatus(InternshipStatus.OPEN);
-        if (keyword != null) internships = internships.stream()
-            .filter(i -> i.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-            .collect(Collectors.toList());
-        if (location != null) internships = internships.stream()
-            .filter(i -> i.getLocation() != null && i.getLocation().equalsIgnoreCase(location))
-            .collect(Collectors.toList());
-        if (category != null) internships = internships.stream()
+        if (keyword != null && !keyword.isBlank()) {
+            String kw = keyword.toLowerCase();
+            internships = internships.stream()
+                .filter(i -> haystack(i).contains(kw))
+                .collect(Collectors.toList());
+        }
+        if (location != null && !location.isBlank()) {
+            String loc = location.toLowerCase();
+            internships = internships.stream()
+                .filter(i -> i.getLocation() != null && i.getLocation().toLowerCase().contains(loc))
+                .collect(Collectors.toList());
+        }
+        if (category != null && !category.isBlank()) internships = internships.stream()
             .filter(i -> i.getCategory() != null && i.getCategory().getCategoryName().equalsIgnoreCase(category))
             .collect(Collectors.toList());
-        if (workType != null) internships = internships.stream()
-            .filter(i -> i.getWorkType() == WorkType.valueOf(workType.toUpperCase()))
-            .collect(Collectors.toList());
+        if (workType != null && !workType.isBlank()) {
+            try {
+                WorkType wt = WorkType.valueOf(workType.toUpperCase().replace("-", "").replace(" ", ""));
+                internships = internships.stream()
+                    .filter(i -> i.getWorkType() == wt)
+                    .collect(Collectors.toList());
+            } catch (IllegalArgumentException ignored) { /* unknown work type: no filter */ }
+        }
         return internships;
+    }
+
+    private String haystack(Internship i) {
+        StringBuilder sb = new StringBuilder();
+        if (i.getTitle() != null) sb.append(i.getTitle()).append(' ');
+        if (i.getDescription() != null) sb.append(i.getDescription()).append(' ');
+        if (i.getRequiredSkills() != null) sb.append(i.getRequiredSkills()).append(' ');
+        if (i.getCompany() != null && i.getCompany().getCompanyName() != null)
+            sb.append(i.getCompany().getCompanyName()).append(' ');
+        if (i.getCategory() != null && i.getCategory().getCategoryName() != null)
+            sb.append(i.getCategory().getCategoryName()).append(' ');
+        return sb.toString().toLowerCase();
     }
 
     public Internship getById(Long id) {

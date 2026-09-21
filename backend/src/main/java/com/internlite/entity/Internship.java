@@ -1,5 +1,6 @@
 package com.internlite.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.internlite.enums.InternshipStatus;
 import com.internlite.enums.WorkType;
 import jakarta.persistence.*;
@@ -16,6 +17,7 @@ public class Internship {
     private Long internshipId;
 
     @ManyToOne
+    @JsonIgnoreProperties("internships")
     private Company company;
 
     @ManyToOne

@@ -8,6 +8,7 @@ import com.internlite.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,18 +33,20 @@ public class CompanyController {
     }
 
     @PostMapping
-    public ResponseEntity<Company> create(@RequestBody Company company) {
+    public ResponseEntity<Company> create(@RequestBody Company company,
+                                          Authentication auth) {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(companyService.create(company));
+                .body(companyService.createForRecruiter(company, auth));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Company> update(
             @PathVariable Long id,
-            @RequestBody Company company) {
+            @RequestBody Company company,
+            Authentication auth) {
 
-        return ResponseEntity.ok(companyService.update(id, company));
+        return ResponseEntity.ok(companyService.updateAndLink(id, company, auth));
     }
 }

@@ -12,10 +12,38 @@ import java.util.List;
 public class CompanyService {
 
     private final CompanyRepository companyRepo;
+    private final RecruiterRepository recruiterRepo;
 
     public Company create(Company company) {
         company.setCreatedAt(java.time.LocalDateTime.now());
         return companyRepo.save(company);
+    }
+
+    /** Create (or re-link) a company for the authenticated recruiter. */
+    public Company createForRecruiter(Company company,
+                                      org.springframework.security.core.Authentication auth) {
+        Company saved = create(company);
+        if (auth != null && auth.getPrincipal() instanceof com.internlite.entity.User user) {
+            recruiterRepo.findByUserUserId(user.getUserId()).ifPresent(r -> {
+                r.setCompany(saved);
+                recruiterRepo.save(r);
+            });
+        }
+        return saved;
+    }
+
+    public Company updateAndLink(Long id, Company details,
+                                 org.springframework.security.core.Authentication auth) {
+        Company saved = update(id, details);
+        if (auth != null && auth.getPrincipal() instanceof com.internlite.entity.User user) {
+            recruiterRepo.findByUserUserId(user.getUserId()).ifPresent(r -> {
+                if (r.getCompany() == null) {
+                    r.setCompany(saved);
+                    recruiterRepo.save(r);
+                }
+            });
+        }
+        return saved;
     }
 
     public Company update(Long id, Company details) {
