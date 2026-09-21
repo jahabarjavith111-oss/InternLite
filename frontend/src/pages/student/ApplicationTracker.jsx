@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { internshipAPI } from '../../api/internshipAPI';
 import { timeAgo } from '../../utils/format';
+import { getExternalApps, removeExternalApp } from '../../utils/externalApps';
 
 const TABS = ['All', 'Applied', 'Shortlisted', 'Interview', 'Selected'];
 const STAGES = ['Applied', 'Shortlisted', 'Interview', 'Result'];
@@ -25,16 +26,20 @@ const stageIndex = (status) => {
 
 const ApplicationTracker = () => {
     const [applications, setApplications] = useState([]);
+    const [external, setExternal] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState('All');
 
     useEffect(() => {
+        setExternal(getExternalApps());
         internshipAPI
             .getMyApplications()
             .then((res) => setApplications(Array.isArray(res.data) ? res.data : []))
             .catch(() => setApplications([]))
             .finally(() => setLoading(false));
     }, []);
+
+    const untrack = (sourceId) => setExternal(removeExternalApp(sourceId));
 
     const filtered = useMemo(() => {
         if (tab === 'All') return applications;
@@ -101,6 +106,40 @@ const ApplicationTracker = () => {
                             </article>
                         );
                     })}
+                </div>
+            )}
+
+            {external.length > 0 && (
+                <div style={{ marginTop: '2rem' }}>
+                    <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Applied on company sites</h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {external.map((app) => (
+                            <article key={app.sourceId} className="card" style={{ padding: '1.25rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <h3 style={{ fontSize: '1.02rem' }}>{app.title}</h3>
+                                        <div className="text-secondary" style={{ fontSize: '0.88rem' }}>
+                                            {app.companyName} • via {app.source}
+                                        </div>
+                                        <div className="caption" style={{ marginTop: '0.3rem' }}>
+                                            Applied: {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : '—'}
+                                        </div>
+                                    </div>
+                                    <span className="badge badge-gray">External</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.75rem' }}>
+                                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => untrack(app.sourceId)}>
+                                        Remove
+                                    </button>
+                                    {app.applyUrl && (
+                                        <a href={app.applyUrl} target="_blank" rel="noopener" className="btn btn-outline btn-sm">
+                                            Open posting ↗
+                                        </a>
+                                    )}
+                                </div>
+                            </article>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

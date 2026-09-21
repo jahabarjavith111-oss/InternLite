@@ -75,7 +75,12 @@ const JobDetailPage = () => {
             alert('Job application submitted!');
             navigate('/student/applications');
         } catch (err) {
-            alert(err.response?.data || 'Failed to apply');
+            if (err.response?.status === 409) {
+                setApplied(true);
+                navigate('/student/applications');
+            } else {
+                alert(err.response?.data || 'Failed to apply');
+            }
         }
     };
 

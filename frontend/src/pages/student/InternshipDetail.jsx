@@ -107,7 +107,13 @@ const InternshipDetail = () => {
             setShowApply(false);
             navigate('/student/applications');
         } catch (e) {
-            alert(e.response?.data || 'Failed to apply');
+            if (e.response?.status === 409) {
+                setApplied(true);
+                setShowApply(false);
+                navigate('/student/applications');
+            } else {
+                alert(e.response?.data || 'Failed to apply');
+            }
         } finally {
             setSubmitting(false);
         }
