@@ -21,12 +21,22 @@ public class JobApplicationService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
+    private final UserRepository userRepo;
+
+    private Student getOrCreateStudent(User user) {
+        return studentRepo.findByUserUserId(user.getUserId()).orElseGet(() -> {
+            Student s = new Student();
+            s.setUser(userRepo.findById(user.getUserId()).orElseThrow());
+            return studentRepo.save(s);
+        });
+    }
+
     public JobApplication apply(JobApplicationRequest req, Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = getOrCreateStudent(user);
         Job job = jobRepo.findById(req.getJobId()).orElseThrow();
         if (jobAppRepo.existsByJobAndStudent(job, student)) {
-            throw new RuntimeException("Already applied");
+            throw new com.internlite.config.DuplicateApplicationException("You have already applied to this job");
         }
         JobApplication app = new JobApplication();
         app.setJob(job);
@@ -42,7 +52,7 @@ public class JobApplicationService {
 
     public List<JobApplication> myApplications(Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = getOrCreateStudent(user);
         return jobAppRepo.findByStudent(student);
     }
 

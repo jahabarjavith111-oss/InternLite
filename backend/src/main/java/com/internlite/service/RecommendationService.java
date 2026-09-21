@@ -15,9 +15,9 @@ public class RecommendationService {
     private final InternshipRepository internshipRepo;
     private final StudentRepository studentRepo;
     private final StudentSkillRepository studentSkillRepo;
+    private final StudentService studentService;
     public List<Map<String, Object>> recommend(Authentication auth) {
-        User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = studentService.getProfile(auth);
         Set<String> skills = studentSkillRepo.findByStudent(student).stream()
             .map(ss -> ss.getSkill().getSkillName().toLowerCase()).collect(Collectors.toSet());
         List<Internship> open = internshipRepo.findByStatus(InternshipStatus.OPEN);

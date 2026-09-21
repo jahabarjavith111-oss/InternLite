@@ -14,7 +14,9 @@ public class MessageService {
     private final UserRepository userRepo;
     private final ApplicationRepository appRepo;
     public Message send(Authentication auth, Long receiverId, Long applicationId, String content) {
-        User sender = (User) auth.getPrincipal();
+        User principal = (User) auth.getPrincipal();
+        User sender = userRepo.findById(principal.getUserId())
+            .orElseThrow(() -> new RuntimeException("Sender not found"));
         User receiver = userRepo.findById(receiverId).orElseThrow(() -> new RuntimeException("Receiver not found"));
         Message m = new Message();
         m.setSender(sender);

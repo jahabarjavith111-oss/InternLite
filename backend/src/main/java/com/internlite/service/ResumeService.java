@@ -13,16 +13,15 @@ import java.util.List;
 public class ResumeService {
     private final ResumeRepository resumeRepo;
     private final StudentRepository studentRepo;
+    private final StudentService studentService;
 
     public List<Resume> myResumes(Authentication auth) {
-        User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = studentService.getProfile(auth);
         return resumeRepo.findByStudent(student);
     }
 
     public Resume upload(Authentication auth, Resume resume) {
-        User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = studentService.getProfile(auth);
         resume.setStudent(student);
         resume.setUploadedAt(java.time.LocalDateTime.now());
         List<Resume> existing = resumeRepo.findByStudent(student);
@@ -35,8 +34,7 @@ public class ResumeService {
     }
 
     public Resume setDefault(Authentication auth, Long resumeId) {
-        User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = studentService.getProfile(auth);
         List<Resume> all = resumeRepo.findByStudent(student);
         Resume target = resumeRepo.findById(resumeId).orElseThrow(() -> new RuntimeException("Resume not found"));
         all.forEach(r -> { r.setDefault(false); resumeRepo.save(r); });

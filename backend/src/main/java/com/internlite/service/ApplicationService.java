@@ -20,19 +20,28 @@ public class ApplicationService {
     private final StudentRepository studentRepo;
     private final ResumeRepository resumeRepo;
     private final NotificationService notificationService;
+    private final UserRepository userRepo;
+
+    private Student getOrCreateStudent(User user) {
+        return studentRepo.findByUserUserId(user.getUserId()).orElseGet(() -> {
+            Student s = new Student();
+            s.setUser(userRepo.findById(user.getUserId()).orElseThrow());
+            return studentRepo.save(s);
+        });
+    }
 
     public Application apply(ApplicationRequest req, Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = getOrCreateStudent(user);
         Internship internship = internshipRepo.findById(req.getInternshipId()).orElseThrow();
 
         if (appRepo.existsByInternshipAndStudent(internship, student)) {
-            throw new RuntimeException("Already applied");
+            throw new com.internlite.config.DuplicateApplicationException("You have already applied to this internship");
         }
         Application app = new Application();
         app.setInternship(internship);
         app.setStudent(student);
-        app.setResume(resumeRepo.findById(req.getResumeId()).orElse(null));
+        app.setResume(req.getResumeId() == null ? null : resumeRepo.findById(req.getResumeId()).orElse(null));
         app.setCoverLetter(req.getCoverLetter());
         app.setStatus(ApplicationStatus.APPLIED);
 
@@ -43,7 +52,7 @@ public class ApplicationService {
 
     public List<Application> studentApplications(Authentication auth) {
         User user = (User) auth.getPrincipal();
-        Student student = studentRepo.findByUserUserId(user.getUserId()).orElseThrow();
+        Student student = getOrCreateStudent(user);
         return appRepo.findByStudent(student);
     }
 
