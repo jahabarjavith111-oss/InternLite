@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 class ApplicationControllerTest {
 
     @Autowired private MockMvc mockMvc;
@@ -66,9 +68,11 @@ class ApplicationControllerTest {
         auditLogRepo.deleteAll();
         userRepo.deleteAll();
 
-        Category cat = new Category();
-        cat.setCategoryName("Technology");
-        categoryRepo.save(cat);
+        Category cat = categoryRepo.findByCategoryNameIgnoreCase("Technology").orElseGet(() -> {
+            Category c = new Category();
+            c.setCategoryName("Technology");
+            return categoryRepo.save(c);
+        });
 
         Company company = new Company();
         company.setCompanyName("Tech Corp");
