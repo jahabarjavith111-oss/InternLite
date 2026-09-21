@@ -62,6 +62,10 @@ public class AuthController {
         if (userRepo.existsByEmail(req.getEmail())) {
             return ResponseEntity.badRequest().body("Email already registered");
         }
+        // Frontend verifies email OTP before enabling Create Account
+        if (!otpService.isVerified(req.getEmail())) {
+            return ResponseEntity.status(403).body("Verify your email OTP first");
+        }
         User user = new User();
         user.setName(req.getName());
         user.setEmail(req.getEmail());
@@ -69,6 +73,7 @@ public class AuthController {
         user.setPhone(req.getPhone());
         user.setRole(req.getRole());
         userRepo.save(user);
+        otpService.consume(req.getEmail());
         return ResponseEntity.ok("User registered successfully");
     }
 
