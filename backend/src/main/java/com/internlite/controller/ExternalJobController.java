@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin("*")
@@ -78,8 +79,18 @@ public class ExternalJobController {
     }
 
     @GetMapping("/api/external-jobs/{id}")
-    public ResponseEntity<JobExternal> getExternalById(@PathVariable Long id) {
-        return ResponseEntity.ok(jobExternalRepo.findById(id).orElseThrow(() -> new RuntimeException("External job not found")));
+    public ResponseEntity<JobExternal> getExternalById(@PathVariable String id) {
+        // Frontend passes the source's own id (e.g. openintern "8172510");
+        // fall back to the internal DB row id for numeric values.
+        try {
+            Long dbId = Long.valueOf(id);
+            Optional<JobExternal> byId = jobExternalRepo.findById(dbId);
+            if (byId.isPresent()) return ResponseEntity.ok(byId.get());
+        } catch (NumberFormatException ignored) {
+            // not a numeric DB id -> try source id below
+        }
+        return ResponseEntity.ok(jobExternalRepo.findFirstBySourceId(id)
+            .orElseThrow(() -> new RuntimeException("External job not found")));
     }
 
     @PostMapping("/api/admin/jobs/ingest")

@@ -4,6 +4,7 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,11 @@ public class EmailService {
             helper.setReplyTo(replyTo);
             helper.setSubject("Your InternLite verification code: " + otp);
             helper.setText(buildHtml(firstName, otp, expiryMinutes), true);
+            try {
+                helper.addInline("logo", new ClassPathResource("logo.png"));
+            } catch (Exception ignored) {
+                // Logo missing from resources: mail still sends without it
+            }
             mailSender.send(message);
         } catch (Exception e) {
             // Log only — OtpService decides whether to fail or run in dev-log mode
@@ -51,9 +57,12 @@ public class EmailService {
         String safeName = (firstName == null || firstName.isBlank()) ? "there" : escape(firstName.trim().split("\\s+")[0]);
         return """
             <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
-              <div style="background:#4f46e5;color:#fff;padding:20px 24px">
-                <h2 style="margin:0">InternLite</h2>
-                <p style="margin:4px 0 0;opacity:.9">Connect. Apply. Grow.</p>
+              <div style="background:#ffffff;padding:16px 24px;text-align:center;border-bottom:1px solid #e5e7eb">
+                <img src="cid:logo" alt="InternLite - Discover - Apply - Grow" style="max-width:280px;width:100%%;height:auto;display:inline-block" />
+              </div>
+              <div style="background:linear-gradient(135deg,#D4AF37,#B8860B);color:#241C00;padding:20px 24px">
+                <h2 style="margin:0">Verify your email</h2>
+                <p style="margin:4px 0 0;opacity:.85">Connect. Apply. Grow.</p>
               </div>
               <div style="padding:24px;color:#111827">
                 <p>Hi %s,</p>
@@ -64,7 +73,7 @@ public class EmailService {
                 <p>Please don&apos;t share this code with anyone. InternLite will never ask you to disclose your verification code.</p>
                 <p>If you didn&apos;t request this code, no action is required.</p>
                 <p>Thanks for choosing <b>InternLite</b>.</p>
-                <p style="margin-top:20px"><b>InternLite Team</b><br/><span style="color:#4f46e5">Connect. Apply. Grow.</span></p>
+                <p style="margin-top:20px"><b>InternLite Team</b><br/><span style="color:#8A6D1B">Connect. Apply. Grow.</span></p>
                 <p style="color:#6b7280;font-size:12px;margin-top:16px">This is an automated no-reply message from InternLite (no-reply@internlite.com). Please do not reply.</p>
               </div>
             </div>

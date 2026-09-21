@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface JobExternalRepository extends JpaRepository<JobExternal, Long> {
     Optional<JobExternal> findBySourceAndSourceId(String source, String sourceId);
 
+    Optional<JobExternal> findFirstBySourceId(String sourceId);
+
     @Query(value = """
         SELECT * FROM jobs_external j
         WHERE (:source IS NULL OR j.source_name = :source)
