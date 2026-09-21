@@ -54,6 +54,18 @@ public class NotificationService {
         return notificationRepo.findByUser_UserIdOrderByCreatedAtDesc(userId);
     }
 
+    public List<Notification> getMine(org.springframework.security.core.Authentication auth) {
+        com.internlite.entity.User user = (com.internlite.entity.User) auth.getPrincipal();
+        return getByUserId(user.getUserId());
+    }
+
+    public Notification markRead(Long id) {
+        Notification n = notificationRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
+        n.setIsRead(true);
+        return notificationRepo.save(n);
+    }
+
     // Count unread notifications
     public long countUnread(Long userId) {
 
