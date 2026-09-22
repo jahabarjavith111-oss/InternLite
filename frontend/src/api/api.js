@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8082/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://internlite-backen.onrender.com/api',
     // Mail-sending endpoints (OTP) can take several seconds over SMTP
     timeout: 45000,
 });
@@ -29,7 +29,7 @@ api.interceptors.response.use(
 export const isNetworkError = (err) => !err?.response && (!!err?.request || err?.code === 'ECONNABORTED' || err?.message === 'Network Error');
 
 export const friendlyError = (err, fallback) => {
-    if (!err?.response) return 'Cannot reach the server. Please make sure the backend is running at ' + (import.meta.env.VITE_API_URL || 'http://localhost:8082/api');
+    if (!err?.response) return 'Cannot reach the server. Please make sure the backend is running at ' + (import.meta.env.VITE_API_URL || 'https://internlite-backen.onrender.com/api');
     const d = err?.response?.data;
     if (typeof d === 'string' && d) return d;
     if (d?.message) return d.message;

@@ -4,7 +4,7 @@
 # Local quick-start:
 #   spring.datasource.url=jdbc:mysql://localhost:3306/internlite?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 #   spring.datasource.username=root
-#   spring.datasource.password=<your-local-mysql-password>
+#   spring.datasource.password=
 #
 # Production (Render + Railway MySQL) — set as environment variables:
 #   SPRING_DATASOURCE_URL=jdbc:mysql://<railway-host>:<port>/railway?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
