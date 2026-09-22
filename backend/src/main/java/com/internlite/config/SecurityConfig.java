@@ -25,7 +25,7 @@ import java.util.List;
 public class SecurityConfig {
 
     // Comma-separated list, e.g. https://internlite-frontend.onrender.com,http://localhost:5173
-    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://internlite-frontend.onrender.com}")
+    @Value("${app.cors.allowed-origins:https://internlite-frontend.onrender.com}")
     private String allowedOrigins;
 
     // Always allowed regardless of FRONTEND_URL — prevents 403 when the env var is wrong/missing
