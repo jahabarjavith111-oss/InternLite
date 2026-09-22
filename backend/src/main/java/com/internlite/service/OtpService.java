@@ -47,9 +47,11 @@ public class OtpService {
         try {
             emailService.sendOtpMail(email, firstNameOf(name, email), code, expiryMinutes);
         } catch (Exception e) {
-            // No real SMTP in dev (localhost:25 dummy). OTP is persisted in DB;
-            // log the code so local testing can proceed without a mail server.
-            log.warn("SMTP send failed for {} ({}). DEV-ONLY OTP code: {}", email, e.getMessage(), code);
+            // Surface the real SMTP error so the frontend can show it
+            // instead of falsely claiming "OTP sent".
+            log.error("SMTP send failed for {}: {}", email, e.getMessage(), e);
+            throw new RuntimeException(
+                "Could not send OTP email. Please try again in a minute.", e);
         }
     }
 

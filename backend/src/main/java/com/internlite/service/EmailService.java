@@ -10,9 +10,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
- * Sends mail via Gmail SMTP (abduljahabar10@gmail.com) but presents
- * From as "InternLite <no-reply@internlite.com>" so the user only sees
- * Internlite.com as a no-reply sender.
+ * Sends mail via Gmail SMTP (authenticated account) but presents
+ * From as "InternLite" so the user only sees InternLite as the sender.
+ * Gmail rejects arbitrary From addresses — the envelope sender must be
+ * the authenticated account; Reply-To keeps no-reply@internlite.com.
  */
 @Service
 @RequiredArgsConstructor
@@ -20,8 +21,8 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.mail.from-address:no-reply@internlite.com}")
-    private String fromAddress;
+    @Value("${spring.mail.username}")
+    private String smtpUsername;
 
     @Value("${app.mail.from-name:InternLite}")
     private String fromName;
@@ -34,9 +35,8 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(toEmail);
-            // Displayed sender: InternLite <no-reply@internlite.com>
-            // Envelope/actual sender remains the authenticated Gmail account.
-            helper.setFrom(new InternetAddress(fromAddress, fromName));
+            // From must be the authenticated Gmail account or Gmail SMTP rejects the send
+            helper.setFrom(new InternetAddress(smtpUsername, fromName));
             helper.setReplyTo(replyTo);
             helper.setSubject("Your InternLite verification code: " + otp);
             helper.setText(buildHtml(firstName, otp, expiryMinutes), true);
