@@ -24,9 +24,12 @@ const Navbar = () => {
 
     return (
         <header className="site-header" role="banner">
-            <a href="#main" className="skip-link">
+            <button
+                type="button"
+                className="skip-link"
+                onClick={() => document.getElementById('main')?.scrollIntoView()}>
                 Skip to main content
-            </a>
+            </button>
             <div className="container header-inner">
                 <button
                     type="button"

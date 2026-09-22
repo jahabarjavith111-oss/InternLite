@@ -20,7 +20,8 @@ api.interceptors.response.use(
         if (err.response?.status === 403 || err.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            if (!window.location.pathname.includes('/login')) window.location.href = '/login';
+            const onLoginPage = window.location.hash.includes('#/login') || window.location.pathname.includes('/login');
+            if (!onLoginPage) window.location.href = '/#/login';
         }
         return Promise.reject(err);
     }
