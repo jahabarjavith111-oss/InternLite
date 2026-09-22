@@ -1,0 +1,14 @@
+# Local run logs — never commit
+*.log
+*.err
+
+# Build outputs
+target/
+node_modules/
+dist/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
