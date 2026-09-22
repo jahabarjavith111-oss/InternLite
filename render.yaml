@@ -12,17 +12,18 @@ services:
     autoDeploy: true
     envVars:
       - key: JAVA_VERSION
-        value: 17
+        value: 21
       - key: SPRING_PROFILES_ACTIVE
         value: default
       - key: JPA_DDL_AUTO
         value: update
-      # --- Railway MySQL (paste from Railway → MySQL → Connect) ---
-      - key: SPRING_DATASOURCE_URL
-        sync: false # jdbc:mysql://<railway-host>:<port>/railway?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      - key: SPRING_DATASOURCE_USERNAME
-        sync: false # e.g. root
-      - key: SPRING_DATASOURCE_PASSWORD
+      # --- Render PostgreSQL (Render → PostgreSQL → Connect → Internal Database URL) ---
+      # DB_URL accepts either jdbc:postgresql://... or the raw postgresql://... URL.
+      - key: DB_URL
+        sync: false # e.g. jdbc:postgresql://dpg-xxxx-a:5432/internlite
+      - key: DB_USERNAME
+        sync: false # e.g. internlite_user
+      - key: DB_PASSWORD
         sync: false
       # --- CORS: your Vercel URL (comma-separated if multiple) ---
       - key: FRONTEND_URL

@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/error").permitAll()
                 // Public browsing: landing page + search work without login
                 .requestMatchers(HttpMethod.GET,
+                    "/",
                     "/api/health",
                     "/api/internships", "/api/internships/**",
                     "/api/jobs", "/api/jobs/**",

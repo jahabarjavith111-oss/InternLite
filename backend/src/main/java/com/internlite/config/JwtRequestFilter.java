@@ -31,23 +31,32 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
-            email = jwtUtil.extractUsername(token);
+            try {
+                email = jwtUtil.extractUsername(token);
+            } catch (Exception e) {
+                email = null;
+                token = null;
+            }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<User> userOpt = userRepo.findByEmail(email);
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                UserDetails details = org.springframework.security.core.userdetails.User
-                    .withUsername(user.getEmail())
-                    .password(user.getPassword())
-                    .roles(user.getRole().name())
-                    .build();
-                if (jwtUtil.validateToken(token, details)) {
-                    UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(user, null, details.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+            try {
+                Optional<User> userOpt = userRepo.findByEmail(email);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    UserDetails details = org.springframework.security.core.userdetails.User
+                        .withUsername(user.getEmail())
+                        .password(user.getPassword())
+                        .roles(user.getRole().name())
+                        .build();
+                    if (jwtUtil.validateToken(token, details)) {
+                        UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(user, null, details.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
                 }
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
             }
         }
         chain.doFilter(req, res);
