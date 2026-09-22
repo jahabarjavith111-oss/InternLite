@@ -17,7 +17,14 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
     res => res,
     err => {
-        if (err.response?.status === 403 || err.response?.status === 401) {
+        const status = err.response?.status;
+        const url = err.config?.url || '';
+        const isAuthCall = url.includes('/auth/login') || url.includes('/auth/register')
+            || url.includes('/auth/send-otp') || url.includes('/auth/verify-otp')
+            || url.includes('/auth/forgot-password') || url.includes('/auth/reset-password');
+        // 401 = session expired. 403 on non-auth endpoints = need login.
+        // Auth endpoints return 401/403 as business errors — don't redirect there.
+        if ((status === 401 || status === 403) && !isAuthCall) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             const onLoginPage = window.location.hash.includes('#/login') || window.location.pathname.includes('/login');

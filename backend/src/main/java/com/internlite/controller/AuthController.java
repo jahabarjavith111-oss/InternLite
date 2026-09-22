@@ -77,6 +77,42 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || !email.contains("@")) {
+            return ResponseEntity.badRequest().body("Valid email is required");
+        }
+        User user = userRepo.findByEmail(email.trim()).orElse(null);
+        if (user == null) {
+            // Same response whether or not the account exists — don't leak accounts
+            return ResponseEntity.ok("If an account exists for that email, a reset code has been sent.");
+        }
+        otpService.sendOtp(email.trim(), user.getName());
+        return ResponseEntity.ok("If an account exists for that email, a reset code has been sent.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otp = body.get("otp");
+        String newPassword = body.get("newPassword");
+        if (email == null || otp == null || newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body("Email, OTP and a password of at least 6 characters are required");
+        }
+        if (!otpService.verifyOtp(email.trim(), otp.trim())) {
+            return ResponseEntity.badRequest().body("Invalid or expired OTP");
+        }
+        User user = userRepo.findByEmail(email.trim()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("Invalid or expired OTP");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+        otpService.consume(email.trim());
+        return ResponseEntity.ok("Password reset successful. You can now log in.");
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
         try {
