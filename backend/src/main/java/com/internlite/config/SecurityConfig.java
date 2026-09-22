@@ -24,8 +24,8 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // Comma-separated list, e.g. https://internlite.vercel.app,http://localhost:5173
-    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
+    // Comma-separated list, e.g. https://internlite-frontend.onrender.com,http://localhost:5173
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://internlite-frontend.onrender.com}")
     private String allowedOrigins;
 
     @Bean
