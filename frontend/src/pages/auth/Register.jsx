@@ -30,6 +30,7 @@ function Register() {
         const d = err.response?.data;
         if (typeof d === 'string' && d) return d;
         if (d?.message) return d.message;
+        if (d?.error) return `${d.error} (${err.response.status})`;
         if (err.response?.status === 403) return 'Request blocked (403). The backend may still be redeploying — wait 30 seconds and try again.';
         if (err.response?.status === 401) return 'Session expired. Please try again.';
         return err.message || fallback;

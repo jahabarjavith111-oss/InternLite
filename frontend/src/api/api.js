@@ -41,6 +41,7 @@ export const friendlyError = (err, fallback) => {
     const d = err?.response?.data;
     if (typeof d === 'string' && d) return d;
     if (d?.message) return d.message;
+    if (d?.error) return `${d.error} (${err.response.status})`;
     if (err?.response?.status === 401) return 'Invalid credentials. Please try again.';
     if (err?.response?.status === 403) return 'Request blocked (403). If you were signing up or logging in, the backend may still be redeploying — wait a moment and try again.';
     if (err?.response?.status === 404) return 'Resource not found.';

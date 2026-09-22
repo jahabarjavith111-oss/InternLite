@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class NotificationController {
 

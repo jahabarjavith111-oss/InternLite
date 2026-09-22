@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/job-applications")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class JobApplicationController {
     private final JobApplicationService jobAppService;

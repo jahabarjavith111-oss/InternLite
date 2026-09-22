@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/messages")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class MessageController {
     private final MessageService messageService;

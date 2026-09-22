@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/saved")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class SavedInternshipController {
     private final SavedInternshipService savedService;

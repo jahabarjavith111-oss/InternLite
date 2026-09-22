@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/skills")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class SkillController {
 

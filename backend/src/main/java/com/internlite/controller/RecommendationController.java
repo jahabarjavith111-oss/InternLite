@@ -10,7 +10,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/recommendations")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class RecommendationController {
     private final RecommendationService recService;

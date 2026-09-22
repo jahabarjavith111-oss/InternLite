@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/companies")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class CompanyController {
 
