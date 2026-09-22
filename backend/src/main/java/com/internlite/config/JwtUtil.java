@@ -2,9 +2,11 @@ package com.internlite.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,11 +14,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Component
 public class JwtUtil {
 
-    private final SecretKey secretKey = Keys.hmacShaKeyFor(
-        "internlite_jwt_secret_key_minimum_256_bits_long_2024".getBytes()
-    );
+    private final SecretKey secretKey;
+    private final long jwtExpiration;
 
-    private final long jwtExpiration = 1000L * 60 * 60 * 24;
+    public JwtUtil(
+        @Value("${app.jwt.secret:internlite_jwt_secret_key_minimum_256_bits_long_2024}")
+        String secret,
+        @Value("${app.jwt.expiration-ms:86400000}")
+        long jwtExpiration
+    ) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.jwtExpiration = jwtExpiration;
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

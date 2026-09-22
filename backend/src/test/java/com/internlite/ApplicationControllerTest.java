@@ -169,6 +169,6 @@ class ApplicationControllerTest {
                 .header("Authorization", "Bearer " + jwtToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(req2)))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isConflict());
     }
 }

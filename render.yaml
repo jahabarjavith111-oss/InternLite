@@ -1,0 +1,49 @@
+# InternLite — Render Blueprint (one-click backend deploy)
+# Docs: https://render.com/docs/blueprint-spec
+# Steps: Render Dashboard → New → Blueprint → select this repo.
+# Then fill the env vars below (values marked sync:false must be set manually).
+services:
+  - type: web
+    name: internlite-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
+      - key: SPRING_PROFILES_ACTIVE
+        value: default
+      - key: JPA_DDL_AUTO
+        value: update
+      # --- Railway MySQL (paste from Railway → MySQL → Connect) ---
+      - key: SPRING_DATASOURCE_URL
+        sync: false # jdbc:mysql://<railway-host>:<port>/railway?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false # e.g. root
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      # --- CORS: your Vercel URL (comma-separated if multiple) ---
+      - key: FRONTEND_URL
+        sync: false # e.g. https://internlite.vercel.app
+      # --- Auth ---
+      - key: JWT_SECRET
+        generateValue: true # 256-bit+ random; or paste your own (min 32 chars)
+      - key: JWT_EXPIRATION_MS
+        value: 86400000
+      # --- Mail (Gmail app password) ---
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        value: no-reply@internlite.com
+      - key: MAIL_FROM_NAME
+        value: InternLite
+      - key: MAIL_REPLY_TO
+        value: no-reply@internlite.com

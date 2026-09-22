@@ -1,20 +1,18 @@
-spring.datasource.url=jdbc:mysql://localhost:3306/internlite
-spring.datasource.username=root
-spring.datasource.password=CHANGE_ME
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
-server.port=8082
-# Gmail SMTP for OTP mails — copy this file to application.properties and fill in
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=YOUR_GMAIL@gmail.com
-spring.mail.password=YOUR_GMAIL_APP_PASSWORD
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
-spring.mail.properties.mail.smtp.starttls.required=true
-spring.mail.properties.mail.smtp.connectiontimeout=10000
-spring.mail.properties.mail.smtp.timeout=10000
-spring.mail.properties.mail.smtp.writetimeout=10000
+# InternLite — copy to application.properties for local dev,
+# or set the matching ENV vars on Render (see render.yaml at repo root).
+#
+# Local quick-start:
+#   spring.datasource.url=jdbc:mysql://localhost:3306/internlite?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#   spring.datasource.username=root
+#   spring.datasource.password=<your-local-mysql-password>
+#
+# Production (Render + Railway MySQL) — set as environment variables:
+#   SPRING_DATASOURCE_URL=jdbc:mysql://<railway-host>:<port>/railway?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#   SPRING_DATASOURCE_USERNAME=<railway-user>
+#   SPRING_DATASOURCE_PASSWORD=<railway-password>
+#   FRONTEND_URL=https://<your-app>.vercel.app
+#   JWT_SECRET=<min-32-char-random-secret>   (or leave empty: Render generates one)
+#   MAIL_USERNAME=<your-gmail>
+#   MAIL_PASSWORD=<gmail-app-password>
+#
+# See application.properties for the full list of supported env vars.
