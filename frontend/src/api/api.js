@@ -2,7 +2,8 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8082/api',
-    timeout: 15000,
+    // Mail-sending endpoints (OTP) can take several seconds over SMTP
+    timeout: 45000,
 });
 
 api.interceptors.request.use(config => {

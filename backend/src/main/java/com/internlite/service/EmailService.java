@@ -41,7 +41,8 @@ public class EmailService {
             helper.setSubject("Your InternLite verification code: " + otp);
             helper.setText(buildHtml(firstName, otp, expiryMinutes), true);
             try {
-                helper.addInline("logo", new ClassPathResource("logo.png"));
+                // Mail-sized logo (33KB) so SMTP upload stays fast
+                helper.addInline("logo", new ClassPathResource("logo-mail.png"));
             } catch (Exception ignored) {
                 // Logo missing from resources: mail still sends without it
             }
