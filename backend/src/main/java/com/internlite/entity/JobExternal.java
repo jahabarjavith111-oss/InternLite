@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "jobs_external", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"source", "source_id"})
+        @UniqueConstraint(columnNames = {"source_name", "source_id"})
 })
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class JobExternal {
