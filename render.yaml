@@ -48,3 +48,18 @@ services:
         value: InternLite
       - key: MAIL_REPLY_TO
         value: no-reply@internlite.com
+
+  # --- Frontend (Vite static site; rewrite keeps React Router routes working) ---
+  - type: web
+    name: internlite-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://internlite-backen.onrender.com/api
