@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("*")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -62,9 +61,10 @@ public class AuthController {
         if (userRepo.existsByEmail(req.getEmail())) {
             return ResponseEntity.badRequest().body("Email already registered");
         }
-        // Frontend verifies email OTP before enabling Create Account
+        // Frontend verifies email OTP before enabling Create Account.
+        // 400 not 403 — 403 means "forbidden" and gets mixed with CORS/security errors.
         if (!otpService.isVerified(req.getEmail())) {
-            return ResponseEntity.status(403).body("Verify your email OTP first");
+            return ResponseEntity.badRequest().body("Verify your email OTP first");
         }
         User user = new User();
         user.setName(req.getName());

@@ -33,6 +33,14 @@ public class SecurityConfig {
         "https://internlite-frontend.onrender.com"
     );
 
+    // Broad patterns so any Render frontend or local dev origin works
+    // even if the exact hostname changes (covers typo'd FRONTEND_URL too)
+    private static final List<String> ALWAYS_ALLOWED_PATTERNS = List.of(
+        "https://*.onrender.com",
+        "http://localhost:*",
+        "http://127.0.0.1:*"
+    );
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtRequestFilter filter) throws Exception {
         http.csrf(csrf -> csrf.disable())
@@ -72,6 +80,11 @@ public class SecurityConfig {
         for (String origin : ALWAYS_ALLOWED_ORIGINS) {
             if (!origins.contains(origin)) {
                 origins.add(origin);
+            }
+        }
+        for (String pattern : ALWAYS_ALLOWED_PATTERNS) {
+            if (!origins.contains(pattern)) {
+                origins.add(pattern);
             }
         }
         // "*" cannot be used with allowCredentials(true); use patterns instead

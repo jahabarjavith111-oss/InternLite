@@ -28,7 +28,11 @@ function Register() {
 
     const errMsg = (err, fallback) => {
         const d = err.response?.data;
-        return (typeof d === 'string' && d) || err.message || fallback;
+        if (typeof d === 'string' && d) return d;
+        if (d?.message) return d.message;
+        if (err.response?.status === 403) return 'Request blocked (403). The backend may still be redeploying — wait 30 seconds and try again.';
+        if (err.response?.status === 401) return 'Session expired. Please try again.';
+        return err.message || fallback;
     };
 
     const handleSendOtp = async (e) => {
