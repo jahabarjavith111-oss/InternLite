@@ -28,6 +28,11 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://internlite-frontend.onrender.com}")
     private String allowedOrigins;
 
+    // Always allowed regardless of FRONTEND_URL — prevents 403 when the env var is wrong/missing
+    private static final List<String> ALWAYS_ALLOWED_ORIGINS = List.of(
+        "https://internlite-frontend.onrender.com"
+    );
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtRequestFilter filter) throws Exception {
         http.csrf(csrf -> csrf.disable())
@@ -56,9 +61,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        List<String> origins = new ArrayList<>(Arrays.asList(allowedOrigins.split(",")));
-        origins.replaceAll(String::trim);
-        origins.removeIf(String::isEmpty);
+        List<String> origins = new ArrayList<>();
+        for (String origin : allowedOrigins.split(",")) {
+            // Strip whitespace and trailing slashes so FRONTEND_URL=https://...onrender.com/ still matches
+            String cleaned = origin.trim().replaceAll("/+$", "");
+            if (!cleaned.isEmpty() && !origins.contains(cleaned)) {
+                origins.add(cleaned);
+            }
+        }
+        for (String origin : ALWAYS_ALLOWED_ORIGINS) {
+            if (!origins.contains(origin)) {
+                origins.add(origin);
+            }
+        }
         // "*" cannot be used with allowCredentials(true); use patterns instead
         config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
