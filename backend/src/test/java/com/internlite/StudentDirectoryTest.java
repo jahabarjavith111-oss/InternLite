@@ -145,6 +145,6 @@ class StudentDirectoryTest {
     @Test
     void directory_ShouldRequireAuth() throws Exception {
         mockMvc.perform(get("/api/students"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

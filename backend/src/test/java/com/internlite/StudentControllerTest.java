@@ -140,7 +140,7 @@ class StudentControllerTest {
     @Test
     void getProfile_ShouldFail_WithoutAuth() throws Exception {
         mockMvc.perform(get("/api/students/profile"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

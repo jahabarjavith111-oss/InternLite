@@ -9,39 +9,19 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.ArrayList;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    // Comma-separated list, e.g. https://internlite-frontend.onrender.com,http://localhost:5173
-    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://internlite-frontend.onrender.com}")
-    private String allowedOrigins;
-
-    // Always allowed regardless of FRONTEND_URL — prevents 403 when the env var is wrong/missing
-    private static final List<String> ALWAYS_ALLOWED_ORIGINS = List.of(
-        "https://internlite-frontend.onrender.com"
-    );
-
-    // Broad patterns so ANY https frontend (Render, Vercel, Netlify, custom
-    // domain) or local dev origin works even if FRONTEND_URL is wrong/missing.
-    // Safe with allowCredentials(true) because auth uses Bearer tokens in
-    // localStorage, never cookies — a wildcard https origin leaks nothing.
-    private static final List<String> ALWAYS_ALLOWED_PATTERNS = List.of(
-        "https://*",
-        "http://localhost:*",
-        "http://127.0.0.1:*"
-    );
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtRequestFilter filter) throws Exception {
@@ -64,6 +44,15 @@ public class SecurityConfig {
                     "/api/external-jobs/**").permitAll()
                 .anyRequest().authenticated()
             )
+            // Unauthenticated access to protected endpoints => 401, not Spring's
+            // default 403 — 403 is reserved for real CORS/authorization failures
+            // so the frontend never confuses "please log in" with "blocked".
+            .exceptionHandling(ex -> ex.authenticationEntryPoint((req, res, e) -> {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType("application/json");
+                res.setCharacterEncoding("UTF-8");
+                res.getWriter().write("{\"message\":\"Authentication required\"}");
+            }))
             .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -71,26 +60,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        List<String> origins = new ArrayList<>();
-        for (String origin : allowedOrigins.split(",")) {
-            // Strip whitespace and trailing slashes so FRONTEND_URL=https://...onrender.com/ still matches
-            String cleaned = origin.trim().replaceAll("/+$", "");
-            if (!cleaned.isEmpty() && !origins.contains(cleaned)) {
-                origins.add(cleaned);
-            }
-        }
-        for (String origin : ALWAYS_ALLOWED_ORIGINS) {
-            if (!origins.contains(origin)) {
-                origins.add(origin);
-            }
-        }
-        for (String pattern : ALWAYS_ALLOWED_PATTERNS) {
-            if (!origins.contains(pattern)) {
-                origins.add(pattern);
-            }
-        }
-        // "*" cannot be used with allowCredentials(true); use patterns instead
-        config.setAllowedOriginPatterns(origins);
+        // Accept ANY browser origin: https hosts, localhost, LAN IPs
+        // (http://192.168.x.x:5173), and "null" (file://). Safe with
+        // allowCredentials(true) because auth is Bearer-token only —
+        // no cookies are ever sent, so there is nothing for a foreign
+        // origin to abuse (no CSRF surface).
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));
