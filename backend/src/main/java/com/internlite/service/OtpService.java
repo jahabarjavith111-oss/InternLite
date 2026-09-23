@@ -47,11 +47,11 @@ public class OtpService {
         try {
             emailService.sendOtpMail(email, firstNameOf(name, email), code, expiryMinutes);
         } catch (Exception e) {
-            // Surface the real SMTP error so the frontend can show it
+            // Surface the real SMTP/API error so the frontend can show it
             // instead of falsely claiming "OTP sent".
-            log.error("SMTP send failed for {}: {}", email, e.getMessage(), e);
-            throw new RuntimeException(
-                "Could not send OTP email. Please try again in a minute.", e);
+            log.error("OTP email send failed for {}: {}", email, e.getMessage(), e);
+            String detail = e.getMessage() != null ? e.getMessage() : "unknown error";
+            throw new RuntimeException("Could not send OTP email. " + detail, e);
         }
     }
 

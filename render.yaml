@@ -33,7 +33,11 @@ services:
         generateValue: true # 256-bit+ random; or paste your own (min 32 chars)
       - key: JWT_EXPIRATION_MS
         value: 86400000
-      # --- Mail (Gmail app password) ---
+      # --- Mail ---
+      # NOTE: Render FREE tier blocks outbound SMTP (ports 25/465/587), so
+      # Gmail SMTP only works locally. For OTP email on Render, create a free
+      # Brevo account (brevo.com) → verify your Gmail under Senders →
+      # SMTP & API → API Keys → paste the key below (sync: false).
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT
@@ -48,6 +52,8 @@ services:
         value: InternLite
       - key: MAIL_REPLY_TO
         value: no-reply@internlite.com
+      - key: BREVO_API_KEY
+        sync: false # free Brevo key — enables HTTPS email on the free tier
 
   # --- Frontend (Vite static site; rewrite keeps React Router routes working) ---
   - type: web

@@ -10,9 +10,11 @@
 #   SPRING_DATASOURCE_URL=jdbc:mysql://<railway-host>:<port>/railway?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 #   SPRING_DATASOURCE_USERNAME=<railway-user>
 #   SPRING_DATASOURCE_PASSWORD=<railway-password>
-#   FRONTEND_URL=https://<your-app>.vercel.app
+#   FRONTEND_URL=https://<your-app>.vercel.app   (optional: CORS already allows any https origin)
 #   JWT_SECRET=<min-32-char-random-secret>   (or leave empty: Render generates one)
 #   MAIL_USERNAME=<your-gmail>
-#   MAIL_PASSWORD=<gmail-app-password>
+#   MAIL_PASSWORD=<gmail-app-password>        (local dev only — Render free tier blocks SMTP)
+#   BREVO_API_KEY=<brevo-api-key>             (REQUIRED on Render free tier for OTP email:
+#                                              brevo.com → verify Gmail sender → SMTP & API → API Keys)
 #
 # See application.properties for the full list of supported env vars.

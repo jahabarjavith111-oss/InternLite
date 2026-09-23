@@ -67,11 +67,11 @@ class AuthControllerTest {
         req.setPhone("1234567890");
         req.setRole(Role.STUDENT);
 
-        // Without OTP verification -> 403
+        // Without OTP verification -> 400 (not 403; 403 is reserved for CORS/security)
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(req)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

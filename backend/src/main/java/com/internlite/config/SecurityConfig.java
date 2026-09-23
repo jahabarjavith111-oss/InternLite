@@ -33,10 +33,12 @@ public class SecurityConfig {
         "https://internlite-frontend.onrender.com"
     );
 
-    // Broad patterns so any Render frontend or local dev origin works
-    // even if the exact hostname changes (covers typo'd FRONTEND_URL too)
+    // Broad patterns so ANY https frontend (Render, Vercel, Netlify, custom
+    // domain) or local dev origin works even if FRONTEND_URL is wrong/missing.
+    // Safe with allowCredentials(true) because auth uses Bearer tokens in
+    // localStorage, never cookies — a wildcard https origin leaks nothing.
     private static final List<String> ALWAYS_ALLOWED_PATTERNS = List.of(
-        "https://*.onrender.com",
+        "https://*",
         "http://localhost:*",
         "http://127.0.0.1:*"
     );
