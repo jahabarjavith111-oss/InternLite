@@ -27,6 +27,8 @@ function Register() {
     }, [cooldown]);
 
     const errMsg = (err, fallback) => {
+        if (err.code === 'ECONNABORTED' || /timeout/i.test(err.message || ''))
+            return 'The server took too long to respond — it was probably waking up from sleep. Please try again in a few seconds.';
         const d = err.response?.data;
         if (typeof d === 'string' && d) return d;
         if (d?.message) return d.message;

@@ -10,8 +10,10 @@ export const API_BASE = stripped.endsWith('/api') ? stripped : stripped + '/api'
 
 const api = axios.create({
     baseURL: API_BASE,
-    // Mail-sending endpoints (OTP) can take several seconds over SMTP
-    timeout: 45000,
+    // Generous on purpose: Render FREE instances sleep after ~15 min idle;
+    // the first request then waits for the Java backend to boot, which can
+    // take 30-60s. A 45s timeout aborted mid-boot and looked like an outage.
+    timeout: 90000,
 });
 
 api.interceptors.request.use(config => {
@@ -45,6 +47,8 @@ api.interceptors.response.use(
 export const isNetworkError = (err) => !err?.response && (!!err?.request || err?.code === 'ECONNABORTED' || err?.message === 'Network Error');
 
 export const friendlyError = (err, fallback) => {
+    if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message || ''))
+        return 'The server took too long to respond — free hosting sleeps when idle, so it was probably waking up. Please try again in a few seconds.';
     if (!err?.response) return 'Cannot reach the server. Please make sure the backend is running at ' + API_BASE;
     const d = err?.response?.data;
     if (typeof d === 'string' && d) return d;
