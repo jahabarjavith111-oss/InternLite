@@ -10,6 +10,17 @@ import { stipendValue, isExternalItem, numericId } from '../../utils/format';
 const ROLE_OPTIONS = ['Software', 'Data', 'AI'];
 const LOCATION_OPTIONS = ['Chennai', 'Bengaluru', 'Remote'];
 const MODE_OPTIONS = ['Remote', 'Hybrid', 'On-site'];
+const SOURCE_OPTIONS = [
+    { value: 'all', label: 'All Sources' },
+    { value: 'internal', label: 'InternLite' },
+    { value: 'openintern', label: 'OpenIntern' },
+    { value: 'greenhouse', label: 'Greenhouse' },
+    { value: 'lever', label: 'Lever' },
+    { value: 'ashby', label: 'Ashby' },
+    { value: 'workable', label: 'Workable' },
+    { value: 'smartrecruiters', label: 'SmartRecruiters' },
+    { value: 'recruitee', label: 'Recruitee' },
+];
 const SORT_OPTIONS = [
     { value: 'relevance', label: 'Relevance' },
     { value: 'newest', label: 'Newest' },
@@ -29,6 +40,7 @@ const InternshipList = () => {
 
     const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
     const [location, setLocation] = useState(searchParams.get('location') || '');
+    const [source, setSource] = useState(searchParams.get('source') || 'all');
     const [roles, setRoles] = useState([]);
     const [locations, setLocations] = useState([]);
     const [modes, setModes] = useState([]);
@@ -36,13 +48,17 @@ const InternshipList = () => {
     const [sort, setSort] = useState('relevance');
 
     const fetchPage = useCallback(
-        async (pageNum = 0, kw, loc) => {
+        async (pageNum = 0, kw, loc, src) => {
             setLoading(true);
             try {
                 const skill = searchParams.get('skill') || undefined;
+                const effectiveSrc = src ?? searchParams.get('source') ?? 'all';
+                const useLive = effectiveSrc !== 'all' && effectiveSrc !== 'internal';
                 const res = await internshipAPI.getUnifiedInternships({
                     keyword: kw || undefined,
                     location: loc || undefined,
+                    source: effectiveSrc !== 'all' ? effectiveSrc : undefined,
+                    live: useLive || undefined,
                     skill,
                     page: pageNum,
                     size: PAGE_SIZE,
@@ -64,10 +80,12 @@ const InternshipList = () => {
     useEffect(() => {
         const kw = searchParams.get('keyword') || '';
         const loc = searchParams.get('location') || '';
+        const src = searchParams.get('source') || 'all';
         setKeyword(kw);
         setLocation(loc);
+        setSource(src);
         setPage(0);
-        fetchPage(0, kw, loc);
+        fetchPage(0, kw, loc, src);
     }, [searchParams, fetchPage]);
 
     useEffect(() => {
@@ -87,6 +105,18 @@ const InternshipList = () => {
         const params = {};
         if (keyword) params.keyword = keyword;
         if (location) params.location = location;
+        if (source && source !== 'all') params.source = source;
+        const skill = searchParams.get('skill');
+        if (skill) params.skill = skill;
+        setSearchParams(params);
+    };
+
+    const pickSource = (value) => {
+        setSource(value);
+        const params = {};
+        if (keyword) params.keyword = keyword;
+        if (location) params.location = location;
+        if (value && value !== 'all') params.source = value;
         const skill = searchParams.get('skill');
         if (skill) params.skill = skill;
         setSearchParams(params);
@@ -150,8 +180,21 @@ const InternshipList = () => {
 
     return (
         <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem' }}>
-            <div style={{ maxWidth: 900, margin: '0 auto 1.5rem' }}>
+            <div style={{ maxWidth: 900, margin: '0 auto 1rem' }}>
                 <SearchBar keyword={keyword} location={location} onKeyword={setKeyword} onLocation={setLocation} onSubmit={runSearch} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '1.25rem' }} aria-label="Filter by company source">
+                {SOURCE_OPTIONS.map((o) => (
+                    <button
+                        key={o.value}
+                        type="button"
+                        className={`skill-chip${source === o.value ? ' skill-highlight' : ''}`}
+                        onClick={() => pickSource(o.value)}
+                    >
+                        {o.label}
+                    </button>
+                ))}
             </div>
 
             <div className="search-layout">
@@ -202,6 +245,7 @@ const InternshipList = () => {
                             setMinStipend('');
                             setKeyword('');
                             setLocation('');
+                            setSource('all');
                             setSearchParams({});
                         }}
                     >
@@ -211,7 +255,14 @@ const InternshipList = () => {
 
                 <section aria-live="polite">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
-                        <h1 style={{ fontSize: '1.35rem' }}>{loading ? 'Searching…' : `${total} internships`}</h1>
+                        <h1 style={{ fontSize: '1.35rem' }}>
+                            {loading ? 'Searching…' : `${total} internships`}
+                            {source !== 'all' && !loading && (
+                                <span className="caption" style={{ marginLeft: '0.5rem' }}>
+                                    · {SOURCE_OPTIONS.find((o) => o.value === source)?.label || source} ● Live feed
+                                </span>
+                            )}
+                        </h1>
                         <select className="input" style={{ maxWidth: 180 }} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort by">
                             {SORT_OPTIONS.map((o) => (
                                 <option key={o.value} value={o.value}>
@@ -226,7 +277,11 @@ const InternshipList = () => {
                     ) : filtered.length === 0 ? (
                         <div className="card empty-state">
                             <h3>No internships match your filters</h3>
-                            <p className="text-secondary">Try a different keyword or clear your filters.</p>
+                            <p className="text-secondary">
+                                {source !== 'all' && source !== 'internal'
+                                    ? `${SOURCE_OPTIONS.find((o) => o.value === source)?.label || source} may have no intern-tagged roles right now — try another company tab or clear your filters.`
+                                    : 'Try a different keyword or clear your filters.'}
+                            </p>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

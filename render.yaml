@@ -54,6 +54,22 @@ services:
         value: no-reply@internlite.com
       - key: BREVO_API_KEY
         sync: false # free Brevo key — enables HTTPS email on the free tier
+      # --- External job ingestion (PUBLIC boards — no API keys needed) ---
+      # Change board lists from the Render dashboard without a code push.
+      - key: GREENHOUSE_TOKENS
+        sync: false # e.g. stripe,coinbase,airbnb
+      - key: LEVER_SLUGS
+        sync: false # e.g. portcast
+      - key: ASHBY_BOARDS
+        sync: false # e.g. linear,openai
+      - key: WORKABLE_ACCOUNTS
+        sync: false # e.g. runware,activtrak
+      - key: SMARTRECRUITERS_COMPANIES
+        sync: false # e.g. smartrecruiters
+      - key: RECRUITEE_COMPANIES
+        sync: false # e.g. vandebron
+      - key: OPENINTERN_LIMIT
+        value: 200
 
   # --- Frontend (Vite static site; rewrite keeps React Router routes working) ---
   - type: web

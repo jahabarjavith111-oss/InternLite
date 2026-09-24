@@ -25,7 +25,7 @@ public class AshbyAdapter implements SourceAdapter {
     @Value("${app.ingestion.ashby.enabled:true}")
     private boolean enabled;
 
-    @Value("${app.ingestion.ashby.boards:ashby,linear}")
+    @Value("${app.ingestion.ashby.boards:linear,openai}")
     private String boardsCsv;
 
     @Override public String getSource() { return "ashby"; }

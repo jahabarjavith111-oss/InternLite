@@ -49,11 +49,12 @@ public class ExternalJobController {
             @RequestParam(required = false) String employmentType,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String workType,
+            @RequestParam(required = false, defaultValue = "false") boolean live,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UnifiedJobDTO> result = unifiedJobService.search(keyword, location, source, isRemote, employmentType, category, workType, pageable, false);
+        Page<UnifiedJobDTO> result = unifiedJobService.search(keyword, location, source, isRemote, employmentType, category, workType, pageable, false, live);
         return ResponseEntity.ok(result);
     }
 
@@ -66,6 +67,7 @@ public class ExternalJobController {
             @RequestParam(required = false) String workType,
             @RequestParam(required = false) Boolean isRemote,
             @RequestParam(required = false) String skill,
+            @RequestParam(required = false, defaultValue = "false") boolean live,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
@@ -73,7 +75,7 @@ public class ExternalJobController {
         String kw = keyword;
         if (skill != null && !skill.isBlank()) kw = (kw == null ? "" : kw + " ") + skill;
         Pageable pageable = PageRequest.of(page, size);
-        Page<UnifiedJobDTO> result = unifiedJobService.search(kw, location, source, isRemote, "intern", category, workType, pageable, true);
+        Page<UnifiedJobDTO> result = unifiedJobService.search(kw, location, source, isRemote, "intern", category, workType, pageable, true, live);
         return ResponseEntity.ok(result);
     }
 

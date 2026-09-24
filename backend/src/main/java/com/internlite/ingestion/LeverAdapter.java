@@ -25,7 +25,7 @@ public class LeverAdapter implements SourceAdapter {
     @Value("${app.ingestion.lever.enabled:true}")
     private boolean enabled;
 
-    @Value("${app.ingestion.lever.slugs:leverdemo,netflix,shopify}")
+    @Value("${app.ingestion.lever.slugs:portcast}")
     private String slugsCsv;
 
     @Override

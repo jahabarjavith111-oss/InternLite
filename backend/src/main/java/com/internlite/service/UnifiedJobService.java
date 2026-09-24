@@ -4,10 +4,13 @@ import com.internlite.dto.UnifiedJobDTO;
 import com.internlite.entity.Internship;
 import com.internlite.entity.Job;
 import com.internlite.entity.JobExternal;
+import com.internlite.ingestion.CanonicalJob;
+import com.internlite.ingestion.SourceAdapter;
 import com.internlite.repository.InternshipRepository;
 import com.internlite.repository.JobExternalRepository;
 import com.internlite.repository.JobRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UnifiedJobService {
 
     private final JobRepository jobRepo;
@@ -29,6 +33,8 @@ public class UnifiedJobService {
     private final InternshipRepository internshipRepo;
     private final JobService jobService;
     private final InternshipService internshipService;
+    // Live adapters for ?live=true fetches (optional — page never breaks if a board is down).
+    private final List<SourceAdapter> adapters;
 
     public Page<UnifiedJobDTO> search(String keyword, String location, String source, Boolean isRemote, String employmentType, Pageable pageable) {
         // overload for backward compat
@@ -44,6 +50,10 @@ public class UnifiedJobService {
     }
 
     public Page<UnifiedJobDTO> search(String keyword, String location, String source, Boolean isRemote, String employmentType, String category, String workType, Pageable pageable, boolean internshipsOnly) {
+        return search(keyword, location, source, isRemote, employmentType, category, workType, pageable, internshipsOnly, false);
+    }
+
+    public Page<UnifiedJobDTO> search(String keyword, String location, String source, Boolean isRemote, String employmentType, String category, String workType, Pageable pageable, boolean internshipsOnly, boolean live) {
         List<UnifiedJobDTO> all = new ArrayList<>();
 
         // External jobs - always include unless source == internal
@@ -66,6 +76,11 @@ public class UnifiedJobService {
             );
             for (JobExternal je : externalPage.getContent()) {
                 all.add(toDTO(je));
+            }
+            // Live mode: hit the board API directly and merge fresh roles on top.
+            // Never breaks the page — any board failure just falls back to cache.
+            if (live && extSource != null) {
+                all = mergeLive(extSource, keyword, location, isRemote, internshipsOnly, all);
             }
         }
 
@@ -106,6 +121,87 @@ public class UnifiedJobService {
 
     private String emptyToNull(String s) {
         return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    /**
+     * Live fetch: query the source's public board API right now and merge fresh
+     * roles ahead of cached rows. Dedupes on (source, sourceId); applies the
+     * same keyword/location/remote/intern filters as the cached path.
+     */
+    private List<UnifiedJobDTO> mergeLive(String extSource, String keyword, String location, Boolean isRemote, boolean internshipsOnly, List<UnifiedJobDTO> cached) {
+        SourceAdapter adapter = null;
+        if (adapters != null) {
+            for (SourceAdapter a : adapters) {
+                if (a.getSource().equalsIgnoreCase(extSource)) { adapter = a; break; }
+            }
+        }
+        if (adapter == null) return cached;
+        List<CanonicalJob> fresh;
+        try {
+            fresh = adapter.fetch();
+        } catch (Exception e) {
+            log.warn("[{}] live fetch failed, serving cache: {}", extSource, e.getMessage());
+            return cached;
+        }
+        if (fresh == null || fresh.isEmpty()) return cached;
+        String kw = keyword == null ? null : keyword.trim().toLowerCase();
+        String loc = location == null ? null : location.trim().toLowerCase();
+        java.util.Set<String> seen = cached.stream()
+                .map(d -> d.getSource() + "|" + d.getSourceId())
+                .collect(java.util.stream.Collectors.toSet());
+        List<UnifiedJobDTO> merged = new ArrayList<>();
+        for (CanonicalJob cj : fresh) {
+            try {
+                if (internshipsOnly && !"intern".equalsIgnoreCase(cj.getEmploymentType())) continue;
+                if (Boolean.TRUE.equals(isRemote) && !Boolean.TRUE.equals(cj.getIsRemote())) continue;
+                if (kw != null && !kw.isEmpty()) {
+                    String hay = ((cj.getTitle() == null ? "" : cj.getTitle()) + " "
+                            + (cj.getCompanyName() == null ? "" : cj.getCompanyName()) + " "
+                            + (cj.getDescriptionMd() == null ? "" : cj.getDescriptionMd())).toLowerCase();
+                    if (!hay.contains(kw)) continue;
+                }
+                if (loc != null && !loc.isEmpty()) {
+                    String jl = cj.getLocation() == null ? "" : cj.getLocation().toLowerCase();
+                    if (!jl.contains(loc)) continue;
+                }
+                String key = cj.getSource() + "|" + cj.getSourceId();
+                if (seen.contains(key)) continue;
+                seen.add(key);
+                merged.add(toDTO(cj));
+            } catch (Exception e) {
+                log.warn("[{}] live row skipped: {}", extSource, e.getMessage());
+            }
+        }
+        log.info("[{}] live merge: +{} fresh roles", extSource, merged.size());
+        merged.addAll(cached);
+        return merged;
+    }
+
+    private UnifiedJobDTO toDTO(CanonicalJob cj) {
+        return UnifiedJobDTO.builder()
+                .id("live-" + cj.getSource() + "-" + cj.getSourceId())
+                .source(cj.getSource())
+                .sourceId(cj.getSourceId())
+                .isExternal(true)
+                .title(cj.getTitle())
+                .companyName(cj.getCompanyName())
+                .companyDomain(cj.getCompanyDomain())
+                .location(cj.getLocation())
+                .isRemote(cj.getIsRemote())
+                .workplaceType(cj.getWorkplaceType())
+                .description(cj.getDescriptionMd())
+                .applyUrl(cj.getApplyUrl())
+                .sourceUrl(cj.getSourceUrl())
+                .employmentType(cj.getEmploymentType())
+                .stipendMin(cj.getStipendMin())
+                .stipendMax(cj.getStipendMax())
+                .stipendCurrency(cj.getStipendCurrency())
+                .tags(cj.getTags())
+                .departments(cj.getDepartments())
+                .duration(null)
+                .postedAt(cj.getPostedAt())
+                .createdAt(cj.getPostedAt())
+                .build();
     }
 
     private UnifiedJobDTO toDTO(JobExternal je) {
